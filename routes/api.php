@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\SbusRegistrationController;
 use App\Http\Controllers\Api\RekeningController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\SbunRegistrationController;
+use App\Http\Controllers\Api\LayananController;
 
 Route::get('/kota-kabupaten', [KotaKabupatenController::class, 'index']);
 
@@ -36,6 +37,12 @@ Route::get('/profile', [ProfileController::class, 'getProfile']);
 //Agenda
 Route::get('/agenda', [AgendaController::class, 'index']);
 Route::get('/agendas/{id}', [AgendaController::class, 'show']);
+//Layanan
+Route::get('/layanan/{type}', [LayananController::class, 'getSection']);
+// Route::put('/layanan/{type}', [LayananController::class, 'updateSection']);
+Route::post('/layanan/{type}', [LayananController::class, 'updateSection']);
+
+
 
 
 
@@ -117,7 +124,11 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
     Route::post('/profile', [ProfileController::class, 'store']);
     Route::put('/profile/{id}', [ProfileController::class, 'update']);
     Route::delete('/profile/{id}', [ProfileController::class, 'destroy']);
+
+    // Route Layanan
+    Route::put('/layanan/{type}', [LayananController::class, 'updateSection']);
 });
+
 
 
 Route::middleware(['auth:sanctum', 'user'])->group(function () {
