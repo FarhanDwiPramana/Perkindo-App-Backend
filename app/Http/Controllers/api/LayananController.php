@@ -42,7 +42,12 @@ class LayananController extends Controller
         'index.*' => 'integer',      // Setiap item dalam index harus integer
         'value' => 'required|array', // Pastikan value adalah array
         'value.*' => 'string',       // Setiap item dalam value harus string
+        'deletedIndices' => 'nullable|array', // Indeks untuk data yang akan dihapus
+        'deletedIndices.*' => 'integer',
+        'newItems' => 'nullable|array', // Data baru yang akan ditambahkan
+        'newItems.*' => 'string',
     ]);
+    
 
     // Menangani kesalahan validasi
     if ($validator->fails()) {
@@ -63,19 +68,49 @@ class LayananController extends Controller
     // Mengambil data yang ada
     $data = $layanan->data;
 
-    // Periksa apakah setiap index valid
-    foreach ($request->input('index') as $i) {
-        if (!isset($data[$i])) {
-            return response()->json([
-                'message' => 'Invalid index.',
-            ], 422);
+    // Periksa dan hapus data berdasarkan deletedIndices
+    if ($request->has('deletedIndices')) {
+        foreach ($request->input('deletedIndices') as $deleteIndex) {
+            if (isset($data[$deleteIndex])) {
+                unset($data[$deleteIndex]);
+            }
         }
+
+        // Reset array keys agar konsisten
+        $data = array_values($data);
     }
 
-    // Update data berdasarkan index yang diberikan
-    foreach ($request->input('index') as $key => $i) {
-        $data[$i] = $request->input('value')[$key];
+   // Hanya tambahkan data baru jika benar-benar ada newItems
+if ($request->has('newItems')) {
+    foreach ($request->input('newItems') as $newItem) {
+        if (!in_array($newItem, $data)) {
+            $data[] = $newItem;
+        }
     }
+}
+
+// Hanya update data yang sudah ada
+if ($request->has('index') && $request->has('value')) {
+    foreach ($request->input('index') as $key => $i) {
+        if (isset($data[$i])) {
+            $data[$i] = $request->input('value')[$key];
+        }
+    }
+}
+
+
+
+foreach ($request->input('index') as $key => $i) {
+    if (!array_key_exists($i, $data)) {
+        return response()->json([
+            'message' => 'Invalid index for update.',
+        ], 422);
+    }
+    $data[$i] = $request->input('value')[$key];
+}
+
+
+
 
     // Simpan data yang telah diperbarui
     $layanan->data = $data;
